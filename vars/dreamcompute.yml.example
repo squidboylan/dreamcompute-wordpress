@@ -1,0 +1,30 @@
+---
+
+# The cloud from ~/.config/openstack/clouds.yml to use
+auth:
+  cloud: dreamcompute
+
+wordpress:
+
+  name: wordpress1
+
+  # Nova flavor to use
+  flavor: 300
+
+  # OS image to use
+  image: Ubuntu-16.04
+
+  # DNS name for your server
+  hostname: "wordpress.example.com"
+
+  admin_email: "admin@wordpress.example.com"
+
+  title: "WordPress performance testing"
+
+  download_url: "https://wordpress.org/latest.tar.gz"
+
+# ssh key to put on the server
+key_name: raynor
+
+db_user: wpuser
+db_pass: password

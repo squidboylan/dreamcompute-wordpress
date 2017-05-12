@@ -1,0 +1,37 @@
+---
+- name: provision server
+  hosts: cloud
+  connection: local
+  vars_files:
+    - "vars/dreamcompute.yml"
+  roles:
+    - create_server
+
+- name: install python2 so we can use ansible
+  hosts: wpservers
+  user: ubuntu
+  become: true
+  become_user: root
+  gather_facts: no
+  roles:
+    - python2
+
+
+- name: Install apache and MySQL
+  hosts: wpservers
+  user: ubuntu
+  become: true
+  become_user: root
+  vars_files:
+     - "vars/dreamcompute.yml"
+  roles:
+     - database
+     - apache2
+
+- name: Install wordpress
+  hosts: wpservers
+  user: ubuntu
+  vars_files:
+     - "vars/dreamcompute.yml"
+  roles:
+     - wordpress

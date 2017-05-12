@@ -1,0 +1,9 @@
+---
+- name: Install wordpress
+  shell: >
+    wp core install --path=/var/www/html
+    --url="http://{{ hostvars.cloud.wordpress1.openstack.public_v4 }}"
+    --title="{{ wordpress.title }}"
+    --admin_user=wpuser
+    --admin_password="{{ db_pass }}"
+    --admin_email="{{ wordpress.admin_email }}"

@@ -1,0 +1,34 @@
+---
+- name: Create server
+  os_server:
+    state: "present"
+    cloud: "{{ auth.cloud }}"
+    name: "{{ wordpress.name }}"
+    image: "{{ wordpress.image }}"
+    key_name: "{{ key_name }}"
+    timeout: 200
+    flavor: "{{ wordpress.flavor }}"
+    network: public
+    meta:
+      hostname: wordpress1
+  register: wordpress1
+
+- name: Add wordpress server to wordpress group
+  add_host:
+    name: "{{ hostvars.cloud.wordpress1.openstack.public_v4 }}"
+    groups: wpservers
+  when: wordpress1.openstack.public_v4 != ""
+
+- name: Add wordpress server to wordpress group
+  add_host:
+    name: "{{ hostvars.cloud.wordpress1.openstack.private_v4 }}"
+    groups: wpservers
+  when: wordpress1.openstack.public_v4 == ""
+
+- name: wait for ssh
+  wait_for:
+    host: "{{ item }}"
+    port: 22
+    timeout: 60
+    state: started
+  with_items: "{{ groups.wpservers }}"

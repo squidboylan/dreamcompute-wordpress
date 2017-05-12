@@ -1,0 +1,27 @@
+---
+- name: Creates directory for database mounting point
+  file: path=/var/lib/mysql state=directory
+
+- name: Install mysql and libraries
+  package: name={{ item }} state=latest
+  with_items:
+    - mysql-server
+    - python-mysqldb
+
+- service: name=mysql state=started enabled=yes
+
+- name: create wordpress database
+  mysql_db:
+    name: "decision2016"
+    state: "{{ item }}"
+  with_items:
+    - ['present', 'absent', 'present']
+
+- name: Add a user
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_pass }}"
+    host: "localhost"
+    priv: 'decision2016.*:ALL'
+    state: present
+

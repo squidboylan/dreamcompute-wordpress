@@ -1,0 +1,84 @@
+---
+- name: Apache and php 7.0
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items:
+    - apache2
+    - php7.0
+    - php7.0-mysql
+    - unzip
+    - php-imagick
+    - php7.0-gd
+    - libapache2-mod-php
+    - libapache2-mod-php7.0
+    - libapr1
+    - libaprutil1
+    - httperf
+
+- shell: rm -rf /var/www/html/index.html
+  args:
+    warn: no
+
+- name: Creates share directory for wpcontent
+  file:
+    path: /var/www/html
+    state: directory
+    owner: www-data
+    group: www-data
+
+- lineinfile: dest=/etc/apache2/apache2.conf line="ServerName localhost"
+
+- name: Download wordpress
+  get_url:
+    url: "{{ wordpress.download_url }}"
+    dest: /var/www/latest.tar.gz
+
+- name: Unpack latest wordpress
+  shell: tar -xf /var/www/latest.tar.gz -C /var/www/html --strip-components=1
+  args:
+    warn: no
+
+- name: Create wordpress configuration
+  shell: cp /var/www/html/wp-config-sample.php /var/www/html/wp-config.php
+  args:
+    warn: no
+
+- name: Configure wordpress database, username and password
+  replace:
+    dest: /var/www/html/wp-config.php
+    regexp: "'{{ item.then }}'"
+    replace: "'{{ item.now }}'"
+    backup: no
+  with_items:
+    - { then: 'database_name_here', now: 'decision2016' }
+    - { then: 'username_here', now: "{{ db_user }}" }
+    - { then: 'password_here', now: "{{ db_pass }}" }
+
+- name: Change ownership of wordpress
+  shell: chown -R www-data:www-data /var/www/html
+  args:
+    warn: no
+
+- service: name=apache2 state=restarted enabled=yes
+
+- name: Install wordpress command line tool
+  get_url:
+    url: "https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar"
+    dest: /usr/local/bin/wp
+    mode: "a+x"
+    force: no
+
+
+- name: Download a wordpress theme
+  get_url:
+      url: "https://downloads.wordpress.org/theme/twentysixteen.1.3.zip"
+      dest: /tmp/wptheme.zip
+      force: yes
+
+- name: Install the theme
+  shell: unzip -o -q /tmp/wptheme.zip -d /var/www/html/wp-content/themes
+  args:
+      warn: no
+
